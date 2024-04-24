@@ -1,0 +1,29 @@
+
+<link rel="icon"
+href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧜‍♀️️ </text></svg>"
+>
+
+<h3>Install & usage</h3>
+<ol>
+
+<li> Download <a href='https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js'>
+MermaidJS</a> and save as a file.</li>
+
+<li>
+<b>DRAG</b> following link on your bookmark toolbar to create bookmarklet.
+<a href='javascript:(()%3D%3E%7Blet%20isRendered%3D!1%3Bconst%20label%3D%22%F0%9F%A7%9C%E2%80%8D%E2%99%80%EF%B8%8F%EF%B8%8F%22%2CstorageName%3D%22mermaidScript%22%2Cselector%3D%22code.language-mermaid%22%3Bfunction%20render()%7Bdocument.querySelectorAll(selector).forEach((e%3D%3E%7Be.dataset.original%3De.textContent%7D))%2Cmermaid.init(void%200%2Cselector)%2CisRendered%3D!0%2Cconsole.info(%22%F0%9F%A7%9C%E2%80%8D%E2%99%80%EF%B8%8F%EF%B8%8F%20rendered%22)%7Dfunction%20restore()%7Bdocument.querySelectorAll(selector).forEach((e%3D%3E%7Be.querySelectorAll(%22svg%22).forEach((e%3D%3E%7Be.remove()%7D))%2Ce.dataset.processed%26%26(e.textContent%3De.dataset.original%2Cdelete%20e.dataset.processed)%7D))%2CisRendered%3D!1%2Cconsole.info(%22%F0%9F%A7%9C%E2%80%8D%E2%99%80%EF%B8%8F%EF%B8%8F%20restored%22)%7Dfunction%20loadScriptFromStorage()%7Bwindow.mermaid%26%26delete%20window.mermaid%3Bconst%20e%3Ddocument.createElement(%22script%22)%3Be.textContent%3DlocalStorage.getItem(storageName)%2Cdocument.head.appendChild(e)%2Cmermaid.initialize(%7Btheme%3A%22dark%22%7D)%2Cconsole.info(%22%F0%9F%A7%9C%E2%80%8D%E2%99%80%EF%B8%8F%EF%B8%8F%20script%20loaded%20from%20localStorage.%22%2BstorageName)%7Dfunction%20setupDragDropListener(e)%7Be.addEventListener(%22dragover%22%2C(function(t)%7Bt.preventDefault()%2Ce.classList.add(%22dragover%22)%7D))%2Ce.addEventListener(%22dragleave%22%2C(function(t)%7Be.classList.remove(%22dragover%22)%7D))%2Ce.addEventListener(%22drop%22%2C(function(t)%7Bt.preventDefault()%2Ce.classList.remove(%22dragover%22)%3Bconst%20o%3Dt.dataTransfer.files%5B0%5D%3Bif(!o)return%3Bconst%20r%3Dnew%20FileReader%3Br.onload%3Dfunction(e)%7Bconsole.info(%22%F0%9F%A7%9C%E2%80%8D%E2%99%80%EF%B8%8F%EF%B8%8F%20file%20loaded%20%22%2Bo.name)%2ClocalStorage.setItem(storageName%2Ce.target.result)%2CloadScriptFromStorage()%7D%2Cr.readAsText(o)%7D))%7Dfunction%20setup()%7BlocalStorage.getItem(storageName)%26%26loadScriptFromStorage()%3Bconst%20e%3D%22mermaidButton%22%3Bif(document.querySelector(%22%23%22%2Be))%3Belse%7Blet%20t%3Ddocument.createElement(%22style%22)%3Bdocument.head.appendChild(t)%2Ct.sheet.insertRule(%60%23%24%7Be%7D%20%7B%5Cn%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20position%3A%20fixed%3B%5Cn%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20top%3A%2050px%3B%5Cn%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20right%3A%2020px%3B%5Cn%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20font-size%3A%2018pt%3B%5Cn%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20border%3A%201px%20solid%20lightgray%3B%5Cn%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20border-radius%3A%205px%3B%5Cn%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20padding%3A%201px%205px%3B%5Cn%20%20%20%20%20%20%20%20%20%20%20%20%7D%60%2Ct.sheet.cssRules.length)%2Ct.sheet.insertRule(%60%23%24%7Be%7D.dragover%20%7B%5Cn%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20background-color%3A%20pink%3B%5Cn%20%20%20%20%20%20%20%20%20%20%20%20%7D%60%2Ct.sheet.cssRules.length)%3Blet%20o%3Ddocument.createElement(%22button%22)%3Bo.id%3De%2Co.textContent%3Dlabel%2CsetupDragDropListener(o)%2Cdocument.body.appendChild(o)%2Co.addEventListener(%22click%22%2C(function()%7Bif(!window.mermaid)%7Bconst%20e%3D%22Mermaid%20is%20not%20loaded.%20Please%20follow%20the%20steps%20below%20to%20set%20it%20up.%5Cn%5Cn1.%20Download%20Mermaid%20JS%20from%20https%3A%2F%2Fcdn.jsdelivr.net%2Fnpm%2Fmermaid%2Fdist%2Fmermaid.min.js%5Cn2.%20Drag%20%26%20drop%20the%20script%20file%20on%20the%20mermaid%20button%20on%20this%20page.%22%3Bthrow%20window.alert(e)%2Ce%7DisRendered%3F(restore()%2Co.style.backgroundColor%3D%22white%22)%3A(render()%2Co.style.backgroundColor%3D%22gray%22)%7D))%7Dconsole.info(%22%F0%9F%A7%9C%E2%80%8D%E2%99%80%EF%B8%8F%EF%B8%8F%20hello!%22)%7Dsetup()%3B%7D)()%3B'
+>🧜‍♀️️ Visualize Mermaid</a></li>
+
+<li>Visit <a href='https://chat.openai.com/'>ChatGPT</a></li>
+
+<li>Click the bookmarklet then you will see a mermaid icon.</li>
+
+<li>Drag the JS file and drop on the icon</li>
+
+<li>Ask ChatGPT to draw any graph in mermaid format</li>
+
+<li>Click the icon then you will see converted diagram</li>
+
+</ol>
+
+Step 1, 2 and 5 is required once. After set up is done, JS file is saved in localStorage and loaded from there.
