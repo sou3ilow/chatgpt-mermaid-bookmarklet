@@ -5,8 +5,23 @@
 href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧜‍♀️️ </text></svg>"
 >
 <title>ChatGPT-Mermaid-Visualizer-Bookmarklet</title>
-
+<style>
+* {
+	font-size: 12pt;
+}
+body {
+	 margin: 1in;
+}
+pre, img {
+	border: 1px solid gray;
+	width: 70%;
+}
+pre {
+	padding: 10px 20px;
+}
+</style>
 </head>
+
 <body>
 
 <h3>Install & usage</h3>
@@ -34,7 +49,20 @@ MermaidJS</a> and save as a file.</li>
 
 Step 1, 2 and 5 is required once. After set up is done, JS file is saved in localStorage and loaded from there.
 
+
+<h3>Details & uninstall</h3>
+
+<p>This bookmarklet uses Mermaid.js to visualize the Mermaid code. mermaid.js is published on CDN and freely accessible, but ChatGPT's CSP does not allow you to import it by specifying script.src or by using fetch.</p>
+
+<p>To work around this limitation, we decided to have users download Mermaid.js and then pass it to the bookmarklet. Once passed, Mermaid.js is stored in localStorage (in ChatGPT's domain), so this operation is not necessary after the second time.</p>
+
+<p>To completely remove the bookmarklet, you must open the Developer Console while visiting ChatGPT and do the following</p>
+<pre>
+delete localstorage.mermaidScript
+</pre>
+
+
 <h3>Example</h3>
-<img style="border:1px solid gray" width=70% src=sample.png>
+<img src=sample.png>
 </body>
 </html>
