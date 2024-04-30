@@ -7,18 +7,21 @@ const selector = 'code.language-mermaid';
 
 function render() {
     // save original mermaid text
-    document.querySelectorAll(selector).forEach(code=>{
+    let targets = document.querySelectorAll(selector);
+    targets.forEach(code=>{
         code.dataset.original = code.textContent;
     });
     // render (or re-render)
-    mermaid.init(undefined, selector);
+    //mermaid.init(undefined, selector);
+    mermaid.run({nodes: targets});
     isRendered = true;
     console.info(label + ' rendered')
 }
 
 function restore() {
     // remove all svgs
-    document.querySelectorAll(selector).forEach(code=>{
+    let targets = document.querySelectorAll(selector);
+    targets.forEach(code=>{
         code.querySelectorAll('svg').forEach(svg=>{ svg.remove(); })
         // restore original data only if the processed flag is true (this is changed by Mermaid)
         if ( code.dataset.processed ) {
