@@ -35,8 +35,19 @@ function loadScriptFromStorage() {
     if (window.mermaid) {
         delete window.mermaid;
     }
+
+    const id = 'mermaid-onthefly'
+
+    // remove script tag
+    let old = document.head.querySelector('#' + id);
+    if ( old ) {
+        document.head.removeChild(old);
+    }
+
     // script.src is prohibited by chatGPT's CSP. also, fetch(url) is not allowed.
     const script = document.createElement('script');
+    script.id = id;
+
     script.textContent = localStorage.getItem(storageName);
     document.head.appendChild(script); 
 
@@ -72,6 +83,7 @@ function setupDragDropListener(target) {
             localStorage.setItem(storageName, e.target.result);
             // window.mermaid will be available by calling the next function
             loadScriptFromStorage();
+            window.alert('new file is stored and the script is loaded');
         }
         reader.readAsText(file);
     });
@@ -91,7 +103,9 @@ function setup() {
         document.head.appendChild(style);
         style.sheet.insertRule(
             // position and size are tuned so that to locate the button next to the ChatGPT share button
+            // display:inline is to overwrite default style in copilot that is display:none
             `#${buttonId} {
+                display: inline !important;
                 position: fixed;
                 top: 50px;
                 right: 20px;
