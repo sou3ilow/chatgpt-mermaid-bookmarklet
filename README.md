@@ -10,4 +10,4 @@ The installation procedure is a little different from the usual bookmarklet; ope
 Sample.pngは動作の様子をキャプチャしたものです。右上に人魚のボタン、Mermaidコードが表示されるべき部分がビジュアル化されています。
 Sample.png is a capture of the operation. The mermaid button is visualized in the upper right corner, where the Mermaid code should appear.
 
-![capture](sample.png)
+![capture](image/sample.png)

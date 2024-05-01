@@ -1,26 +1,51 @@
 let isRendered = false;
 const label = "🧜‍♀️️"
+const version = "ver. 2024 Apr 30"
 const storageName = 'mermaidScript'
+const storageDate = 'mermaidScriptDate'
 
 // target selector which contain mermaid description for chatGPT
 const selector = 'code.language-mermaid';
 
+//function listupTargets() {
+//    let targets = document.querySelectorAll(selector);
+//    return targets;
+//}
+
+// list up trgets supporting shadowdom (copilot)
+function listupTargets(base=document.body) {
+    const results = [];
+
+    // query targets element on the Light DOM
+    results.push(...base.querySelectorAll(selector));
+
+    // look for targets on the Shadow DOM recursively
+    const elems = base.querySelectorAll('*');
+    elems.forEach(e => {
+        if (e.shadowRoot) {
+            results.push(...listupTargets(e.shadowRoot));
+        }
+    });
+
+    return results;
+}
+
+
 function render() {
     // save original mermaid text
-    let targets = document.querySelectorAll(selector);
+    let targets = listupTargets();
     targets.forEach(code=>{
         code.dataset.original = code.textContent;
     });
     // render (or re-render)
-    //mermaid.init(undefined, selector);
-    mermaid.run({nodes: targets});
+    mermaid.run({nodes: targets, suppressErrors:true});
     isRendered = true;
-    console.info(label + ' rendered')
+    console.info(`${label} rendered`)
 }
 
 function restore() {
     // remove all svgs
-    let targets = document.querySelectorAll(selector);
+    let targets = listupTargets();
     targets.forEach(code=>{
         code.querySelectorAll('svg').forEach(svg=>{ svg.remove(); })
         // restore original data only if the processed flag is true (this is changed by Mermaid)
@@ -30,10 +55,19 @@ function restore() {
         }
     });
     isRendered = false;
-    console.info(label + ' restored')
+    console.info(`${label} restored`)
 }
 
 function loadScriptFromStorage() {
+    let scriptText = localStorage.getItem(storageName);
+    let date = new Date(localStorage.getItem(storageDate));
+
+    loadScript(scriptText);
+    
+    console.info(`${label} script loaded from localStorage.${storageName}, stored on ${date.toISOString()}`);
+}
+
+function loadScript(scriptText) {
     // unload mermaid first
     if (window.mermaid) {
         delete window.mermaid;
@@ -51,14 +85,13 @@ function loadScriptFromStorage() {
     const script = document.createElement('script');
     script.id = id;
 
-    script.textContent = localStorage.getItem(storageName);
-    document.head.appendChild(script); 
+    script.textContent = scriptText;
+    document.head.appendChild(script); // window.mermaid will be available
 
     // default theme does not match the background color of code pane of ChatGPT
     mermaid.initialize({ theme: 'dark' });
-    // try `delete localStorage[storageName]` to remove script from storge
-    console.info(label + ' script loaded from localStorage.' + storageName);
 }
+
 
 function setupDragDropListener(target) {
     // just to apeal where the script file should be dropped
@@ -80,13 +113,26 @@ function setupDragDropListener(target) {
         const file = event.dataTransfer.files[0];
         if (!file) return;
 
+        // Set UseStorage to false if script is too large to store in localStorage
+        const UseStorage = false;
+
         const reader = new FileReader();
         reader.onload = function(e) {
-            console.info(label + ' file loaded ' + file.name);
-            localStorage.setItem(storageName, e.target.result);
-            // window.mermaid will be available by calling the next function
-            loadScriptFromStorage();
-            window.alert('new file is stored and the script is loaded');
+            let date = new Date();
+
+            if ( UseStorage ) {
+                // try `delete localStorage[storageName], delete localStorage[storageDate]` to remove script from storge
+                localStorage.setItem(storageName, e.target.result);
+                localStorage.setItem(storageDate, date);
+                console.info(`${label} content is stored at ${storageName} (${date})`);
+
+                loadScriptFromStorage();
+            } else {
+                let scriptText = e.target.result;
+                loadScript(scriptText);
+            }
+            console.info(`${label} Script is reloaded.`);
+            window.alert('Script is reloaded.');
         }
         reader.readAsText(file);
     });
@@ -152,9 +198,9 @@ function setup() {
             }
         });
     }
-
-    console.info(label + " hello!")
+    
+    let date = localStorage.getItem(storageDate);
+    console.info(`${label} hello! bookmarklet:${version} script: ${date}`)
 }
 
 setup();
-
