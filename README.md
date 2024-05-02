@@ -11,3 +11,5 @@ Sample.pngは動作の様子をキャプチャしたものです。右上に人�
 Sample.png is a capture of the operation. The mermaid button is visualized in the upper right corner, where the Mermaid code should appear.
 
 ![capture](image/sample.png)
+
+[Test](javascript:window.alert%28"hello"%28)
