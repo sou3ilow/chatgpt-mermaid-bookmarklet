@@ -4,8 +4,9 @@ ChatGPTが出力したMermaid形式のコードをビジュアライズ/解除�
 
 Bookmarklet to visualize/unvisualize Mermaid format code output by ChatGPT.
 
-<img width=40% src=image/before.png>
-<img width=40% src=./image/after.png>
+|Before|After|
+|---|---|
+|![](image/before.png)|![](/image/after.png)|
 
 インストール方法が普通のブックマークレットと少し異なります。install-and-usage.htmlをブラウザで開いて見てください。
 Sample.pngは動作の様子をキャプチャしたものです。右上に人魚のボタン、Mermaidコードが表示されるべき部分がビジュアル化されています。
