@@ -1,12 +1,24 @@
 let isRendered = false;
-const label = "🧜‍♀️️"
-const version = "ver. 2024 Apr 30"
-const storageName = 'mermaidScript'
-const storageDate = 'mermaidScriptDate'
-const storagePosition = 'mermaidIconPosition'
+const label = "🧜‍♀️️";
+const version = "ver. 2024 May 15";
+const scriptStorage = 'mermaidScript';
+const dateStorage = 'mermaidScriptDate';
+const positionStorage = 'mermaidIconPosition';
+
+// default theme does not match the background color of code pane of ChatGPT
+const mermaidTheme = 'dark';
 
 // target selector which contain mermaid description for chatGPT
 const selector = 'code.language-mermaid';
+
+function uninstall() {
+    delete window.mermaid;
+    localStorage.removeItem(scriptStorage);
+    localStorage.removeItem(dateStorage);
+    localStorage.removeItem(positionStorage);
+    console.info(`${label} Localstorage(${scriptStorage}, ${dateStorage}, ${positionStorage}) is cleared.`);
+    window.alert(`Localstorage is cleared.`);
+}
 
 // list up trgets supporting shadowdom (copilot)
 function listupTargets(base=document.body) {
@@ -26,6 +38,17 @@ function listupTargets(base=document.body) {
     return results;
 }
 
+function toggleRendering(onfinish) {
+    if (isRendered) {
+        restore();
+    } else {
+        render();
+    }
+    //isRendered = !isRendered; // toggle flag in render() or restore()
+    if (onfinish) {
+        onfinish(isRendered);
+    }
+}
 
 function render() {
     // save original mermaid text
@@ -56,12 +79,12 @@ function restore() {
 }
 
 function loadScriptFromStorage() {
-    let scriptText = localStorage.getItem(storageName);
-    let date = new Date(localStorage.getItem(storageDate));
+    let scriptText = localStorage.getItem(scriptStorage);
+    let date = new Date(localStorage.getItem(dateStorage));
 
     loadScript(scriptText);
     
-    console.info(`${label} script loaded from localStorage.${storageName}, stored on ${date.toISOString()}`);
+    console.info(`${label} script loaded from localStorage.${scriptStorage}, stored on ${date.toISOString()}`);
 }
 
 function loadScript(scriptText) {
@@ -85,8 +108,7 @@ function loadScript(scriptText) {
     script.textContent = scriptText;
     document.head.appendChild(script); // window.mermaid will be available
 
-    // default theme does not match the background color of code pane of ChatGPT
-    mermaid.initialize({ theme: 'dark' });
+    mermaid.initialize({ theme: mermaidTheme });
 }
 
 function setupDraggable(target, storage) {
@@ -94,8 +116,8 @@ function setupDraggable(target, storage) {
     target.draggable = true;
     target.addEventListener("dragstart", ondragstart);
 
-    function restoreInset(storageName) {
-        let prev = localStorage.getItem(storageName);
+    function restoreInset(store) {
+        let prev = localStorage.getItem(store);
         if (!prev) {
             return null;
         }
@@ -108,14 +130,14 @@ function setupDraggable(target, storage) {
         return [top, right, bottom, left];
     }
 
-    function storeInset(storageName, inset) {
-        localStorage.setItem(storageName, inset.join(","));
+    function storeInset(store, inset) {
+        localStorage.setItem(store, inset.join(","));
     }
 
     // set inset. top_right_bottom_left is array of number or "auto"
     function setInset(target, top_right_bottom_left) {
         let inset = top_right_bottom_left.map((v)=>v==='auto' ? v : v + 'px');
-        console.log(inset)
+        //console.debug(inset)
         target.style.inset = inset.join(" ");
     }
     
@@ -148,6 +170,7 @@ function setupDraggable(target, storage) {
     function ondrag(ev) {
         ev.preventDefault();
         //console.debug("ondrag")
+
         // move the target if dragging
         if (pos.dragging) {
 
@@ -201,7 +224,7 @@ function setupDraggable(target, storage) {
     }
 }
 
-function setupFileReciever(target, postLoadCallback=null) {
+function setupFileReciever(target, onfileloaded) {
     // just to apeal where the script file should be dropped
     target.addEventListener('dragover', function(event) {
         event.preventDefault();
@@ -222,16 +245,16 @@ function setupFileReciever(target, postLoadCallback=null) {
         if (!file) return;
 
         // Set UseStorage to false if script is too large to store in localStorage
-        const UseStorage = false;
+        const UseStorage = true;
 
         const reader = new FileReader();
         reader.onload = function(e) {
             let date = new Date();
 
             if ( UseStorage ) {
-                localStorage.setItem(storageName, e.target.result);
-                localStorage.setItem(storageDate, date);
-                console.info(`${label} content is stored at ${storageName} (${date})`);
+                localStorage.setItem(scriptStorage, e.target.result);
+                localStorage.setItem(dateStorage, date);
+                console.info(`${label} content is stored at ${scriptStorage} (${date})`);
 
                 loadScriptFromStorage();
             } else {
@@ -241,17 +264,47 @@ function setupFileReciever(target, postLoadCallback=null) {
             console.info(`${label} Script is reloaded.`);
             window.alert('Script is reloaded.');
 
-            if ( postLoadCallback ) {
-                postLoadCallback();
+            if ( onfileloaded ) {
+                onfileloaded();
             }
         }
         reader.readAsText(file);
     });
 }
 
+function create(tag, {id=null, klass=null, html=null, text=null, attr={}, style={}, on={}, child=[]}) {
+    let elem = document.createElement(tag);
+    if (klass) elem.className = klass;
+    if (id) elem.id = id;
+    if (html) elem.innerHTML = html;
+    if (text) elem.textContent = text;
+    for (let key in attr) elem[key] = attr[key];
+    for (let key in style) elem.style[key] = style[key];
+    for (let key in on) elem.addEventListener(key, on[key]);
+    for (let c of child) elem.appendChild(c);
+    return elem;
+}
+
+let initialized = false;
+
+function initialize() {
+    if ( initialized ) {
+        return;
+    } else {
+        setup();
+        // set flag if any exception occurs
+        initialized = true;
+    }
+}
+
 function setup() {
 
-    if (localStorage.getItem(storageName)) {
+    // shadowDOM for avoiding style conflict, and slot for original content 
+	let markletroot = document.body.attachShadow({mode: 'open'});
+	markletroot.appendChild(document.createElement('slot'));
+
+    const isScriptStored = !!localStorage.getItem(scriptStorage)
+    if (isScriptStored) {
         loadScriptFromStorage();
     }
 
@@ -260,15 +313,15 @@ function setup() {
     const cancelId = 'cancel';
     const dropareaId = 'droparea';
 
-    if ( document.querySelector("#" + buttonId) ) {
-        ; // skip if button is already setup
-    } else {
-        let style = document.createElement('style');
-        document.head.appendChild(style);
+    let style = document.createElement('style');
+    markletroot.appendChild(style);
 
-        style.textContent =
+    style.textContent =
 // position and size are tuned so that to locate the button next to the ChatGPT share button
 // display:inline is to overwrite default style in copilot that is display:none
+`* {
+    font-size: small;
+}` +
 `#${buttonId} {
     display: inline !important;
     position: fixed;
@@ -277,24 +330,29 @@ function setup() {
     border-radius: 5px;
     padding: 1px 5px;
     z-index: 1000;
+    transition: transform 0.5s;
 }` + 
+`#${buttonId}.rendered {
+    transform: scaleX(-1);
+}` +
 `#${dialogId} {
-    visibility: visible;
-    width: 400px;
-    height: 300px;
+    visibility: ${isScriptStored ? 'hidden' : 'visible'};
+    min-width: 400px;
+    min-height: 250px;
     position: fixed;
-    top: 100px;
+    top: 10%;
     left: 50%;
     transform: translate(-50%, 0);
     z-index: 1000;
     border: 1px solid lightgray;
+    drpo-shadow: 5px 5px 5px gray;
     background-color: white;
     border-radius: 5px;
     padding: 20px;
 }` +
 `#${dropareaId} {
     width: 80%;
-    height: 50%;
+    height: 30px;
     margin: auto;
     padding: 20px;
     border: 1px solid lightgray;
@@ -304,71 +362,44 @@ function setup() {
 `#${dropareaId}.dragover {
     background-color: pink;
 }`;
-        function text(str) {
-            return document.createTextNode(str);
-        }
 
-        function create(tag, {id=null, klass=null, html=null, text=null, attr={}, style={}, handler={}, child=[]}) {
-            let elem = document.createElement(tag);
-            if (klass) elem.className = klass;
-            if (id) elem.id = id;
-            if (html) elem.innerHTML = html;
-            if (text) elem.textContent = text;
-            for (let key in attr) elem[key] = attr[key];
-            for (let key in style) elem.style[key] = style[key];
-            for (let key in handler) elem.addEventListener(key, handler[key]);
-            for (let c of child) elem.appendChild(c);
-            return elem;
-        }
+    /*
+    elements:
+        - div#dialog
+            - text: Drag & Drop Mermaid JS here
+            - div#droparea
+            - button#cancel
+        - button#mermaidButton
 
-        /*
+    actions:
+        mermaidButton.leftclick -> flip mermaid status
+        mermaidButton.rightclick -> show dialog
 
-        elements:
-            - button#mermaidButton
-            - div#dialog
-                - text: Drag & Drop Mermaid JS here
-                - div#droparea
-                - button#cancel
+        droparea.drop -> upload mermaid script & load it & hide dialog
+        cancel.click -> hide dialog
+    */
 
-        actions:
-            mermaidButton.leftclick -> flip mermaid status
-            mermaidButton.rightclick -> show dialog
+    // dialog operations
+    function showDialog() {
+        dialog.style.visibility = 'visible';
+    }
+    function hideDialog() {
+        dialog.style.visibility = 'hidden';
+    }
+    function toggleDialog() {
+        dialog.style.visibility = dialog.style.visibility === 'visible' ? 'hidden' : 'visible';
+    }
 
-            droparea.drop -> upload mermaid script & load it & hide dialog
-            cancel.click -> hide dialog
-        */
+    // setup dialog /////////////////////////////////////////////////////////////
 
-        // actions
-        function showDialog() {
-            // ref. var dialog
-            dialog.style.visibility = 'visible';
-        }
-        function hideDialog() {
-            // ref. var dialog
-            dialog.style.visibility = 'hidden';
-        }
-        function toggleDialog() {
-            // ref. var dialog
-            dialog.style.visibility = dialog.style.visibility === 'visible' ? 'hidden' : 'visible';
-        }
+    let droparea = create('div', { id: dropareaId, text: 'Drag & Drop Mermaid JS here!' });
+    setupFileReciever(droparea, hideDialog);
 
-
-        let button = create('button', {id: buttonId, text: label});
-        button.style.visibility = "hidden";
-
-        //let markletroot = document.body.attachShadow({mode: 'open'}); //TODO
-        let markletroot = document.body;
-
-        markletroot.appendChild(button); // to get offsetWidth/Height
-        setupDraggable(button, storagePosition);
-        button.style.visibility = "visible";
-
-        let droparea = create('div', { id: dropareaId, attr: { textContent: 'Drag & Drop Mermaid JS here' }});
-        let cancelbutton = create('button', { id:cancelId, handler: { click: hideDialog }, text: '✖' })
-        var dialog = create('div', { id: dialogId, child: [
-            cancelbutton,
-            create('span', {html: "Mermaid JS registrationr" }),
-            create('p', {html:`
+    let dialog = create('div', { id: dialogId, child: [
+        //cancelbutton
+        create('button', { id: cancelId, on: { click: hideDialog }, text: '✖' }),
+        create('p', { html: `
+<span>To load or update Mermaid JS, please follow the steps below:</span>
 <ol>
     <li> Download Mermaid JS from
         <ul>
@@ -376,52 +407,60 @@ function setup() {
         <li> <a href='https://sou3ilow.github.io/chatgpt-mermaid-bookmarklet/mermaid-patched/mermaid.min-11.0.0-alpha.7-patched.js'>Patched version</a></li>
         </ul>
     </li>
-    <li> Drag & drop the script file on below rectangle</li>
+    <li> Drag & drop the script file below </li>
 </ol>`}),
-            droparea
-        ]});
-
-        markletroot.appendChild(dialog);
-
-        // to receive Mermaid javascript file
-        setupFileReciever(droparea, hideDialog);
-
-        button.addEventListener('contextmenu', function(event) {
-            event.preventDefault();
-            toggleDialog();
-        });
-
-        button.addEventListener('click', function() {
-            if ( !window.mermaid ) {
-                const usage = "Mermaid is not loaded. Please follow the steps below to set it up.\n\n" +
-                "1. Download Mermaid JS from https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js\n" +
-                "2. Drag & drop the script file on the mermaid button on this page.";
-                window.alert(usage);
-                throw usage;
-            }
-            
-            // flip status
-            if (!isRendered) {
-                render();
-                button.style.backgroundColor = "gray";
-            } else {
-                restore();
-                button.style.backgroundColor = "white";
-            }
-        });
-    }
+        droparea,
+        create('p', { html: `
+<span>Or, you can uninstall the script by clicking the button below:</span>`}),
     
-    let date = localStorage.getItem(storageDate);
+        //uninstallButton
+        create('button', { text: 'Uninstall', on: { click: ()=>{
+            uninstall();
+            hideDialog();
+        }}})
+    ]});
+
+    markletroot.appendChild(dialog);
+
+    // setup button /////////////////////////////////////////////////////////////
+
+    let button = create('button', {id: buttonId, text: label});
+
+    // append button first without showing to get offsetWidth/Height of the button
+    button.style.visibility = "hidden";
+    markletroot.appendChild(button);
+    setupDraggable(button, positionStorage);
+    button.style.visibility = "visible";
+
+    button.addEventListener('contextmenu', function(event) {
+        event.preventDefault();
+        toggleDialog();
+    });
+
+    button.addEventListener('click', function() {
+        // missing window.mermaid stands for script is not loaded yet. show steps to load it.
+        if ( !window.mermaid ) {
+            showDialog();
+            return;
+        }
+        
+        toggleRendering((isRendered)=>{
+            if (isRendered) {
+                //button.style.backgroundColor = "gray";
+                button.classList.add('rendered');
+            } else {
+                //button.style.backgroundColor = "white";
+                button.classList.remove('rendered');
+            }
+        });
+    });
+    
+    let date = localStorage.getItem(dateStorage);
     console.info(`${label} hello! bookmarklet:${version} script: ${date}`)
 
-    window.uninstallMermaid = function() {
-        delete window.mermaid;
-        localStorage.removeItem(storageName);
-        localStorage.removeItem(storageDate);
-        localStorage.removeItem(storagePosition);
-        console.info(`${label} Mermaid is uninstalled`);
-    }
+    // expose uninstall function
+    window.uninstallMermaid = uninstall;
     console.info("execute `uninstallMermaid()` to uninstall saved data by this script");
 }
 
-setup();
+initialize();
